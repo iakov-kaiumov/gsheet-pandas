@@ -1,5 +1,8 @@
 # Google sheet & Pandas intergation
 
+[![PyPI Latest Release](https://img.shields.io/pypi/v/gsheet-pandas.svg)](https://pypi.org/project/gsheet-pandas/)
+[![License](https://img.shields.io/pypi/l/gsheet-pandas.svg)](https://github.com/iakov-kaiumov/gsheet-pandas/blob/main/LICENSE)
+
 Package `gheet-pandas` allows you to easily get Pandas dataframe from Google Sheets or upload dataframe to the Sheets.
 
 ## Installation
