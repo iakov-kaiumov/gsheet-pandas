@@ -1,4 +1,4 @@
-from connection import DriveConnection
+from gsheet_pandas.connection import DriveConnection
 
 
 __version__ = "0.1.0"
