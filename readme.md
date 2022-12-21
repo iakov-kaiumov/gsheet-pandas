@@ -42,10 +42,17 @@ drive = DriveConnection(credentials_dir=secret_path / 'credentials.json',
 
 To download dataframe:
 ```python
-df = drive.download(drive_table=table_name, sheet_name=sheet_name)
+df = drive.download(drive_table=table_name, 
+                    sheet_name=sheet_name,
+                    range_name='!A1:C100') # Range in Sheets; Optional
 ```
+Default `range_name` is `'!A1:ZZ900000'`.
 
 To upload dataframe:
 ```python
-drive.upload(df, drive_table=table_name, sheet_name=sheet_name)
+df = drive.download(df,
+                    drive_table=table_name, 
+                    sheet_name=sheet_name,
+                    range_name='!B1:ZZ900000', # Range in Sheets; Optional
+                    drop_columns=False) # Upload column names or not; Optional
 ```
