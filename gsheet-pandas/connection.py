@@ -20,6 +20,22 @@ socket.setdefaulttimeout(timeout_in_sec)
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 DEFAULT_RANGE_NAME = '!A1:ZZ900000'
 
+drive_connection = None
+
+
+def setup(credentials_dir: Path, token_dir: Path):
+    global drive_connection
+    drive_connection = DriveConnection(credentials_dir=credentials_dir, token_dir=token_dir)
+
+    def inner_generator():
+        def inner(df, *args, **kwargs):
+            drive_connection.upload(df, *args, **kwargs)
+        return inner
+
+    import pandas
+    pandas.DataFrame.to_gsheet = inner_generator()
+    pandas.from_gsheet = drive_connection.download
+
 
 class DriveConnection:
     def __init__(self, credentials_dir: Path, token_dir: Path):
