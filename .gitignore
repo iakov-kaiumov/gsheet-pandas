@@ -1,2 +1,5 @@
 /data/
 /.env
+/gsheet_pandas.egg-info/
+/dist/
+/build/

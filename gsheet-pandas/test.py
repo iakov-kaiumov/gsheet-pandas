@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-import connection
+from adapter import connection
 
 
 class TestConnectionMethods(unittest.TestCase):
