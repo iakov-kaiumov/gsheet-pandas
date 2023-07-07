@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 
 
@@ -7,7 +7,7 @@ long_description = (BASE_DIR / "readme.md").read_text()
 
 setup(
     name='gsheet-pandas',
-    version='0.1.5',
+    version='0.1.6',
     description='Download and upload pandas dataframes to the Google sheets',
     url='https://github.com/iakov-kaiumov/gsheet-pandas',
     author='Iakov Kaiumov',
@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='MIT License',
-    packages=['gsheet_pandas'],
+    packages=find_packages(),
     package_dir={'gsheet_pandas': 'gsheet-pandas'},
     install_requires=[
         'google-api-python-client',
