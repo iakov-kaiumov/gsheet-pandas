@@ -8,24 +8,25 @@ from pathlib import Path
 import pandas as pd
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-timeout_in_sec = 60 * 1  # 3 minutes timeout limit
+
+timeout_in_sec = 60 * 1
 socket.setdefaulttimeout(timeout_in_sec)
 
 
-# If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 DEFAULT_RANGE_NAME = '!A1:ZZ900000'
 
 drive_connection = None
 
 
-def setup(credentials_dir: Path, token_dir: Path):
+def setup(credentials_dir: Path, token_dir: Path = None):
     global drive_connection
-    drive_connection = DriveConnection(credentials_dir=credentials_dir, token_dir=token_dir)
+    drive_connection = DriveConnection(credentials_dir, token_dir)
 
     def inner_generator():
         def inner(df, *args, **kwargs):
@@ -38,15 +39,12 @@ def setup(credentials_dir: Path, token_dir: Path):
 
 
 class DriveConnection:
-    def __init__(self, credentials_dir: Path, token_dir: Path):
+    def __init__(self, credentials_dir: Path, token_dir: Path = None):
         self.credentials_dir = credentials_dir
         self.token_dir = token_dir
 
-    def _get_service(self, service_name='sheets', service_version='v4'):
+    def _get_user_creds(self):
         creds = None
-        # The file token.json stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
         if os.path.exists(self.token_dir):
             creds = Credentials.from_authorized_user_file(self.token_dir.__str__(), SCOPES)
         # If there are no (valid) credentials available, let the user log in.
@@ -59,6 +57,20 @@ class DriveConnection:
             # Save the credentials for the next run
             with open(self.token_dir, 'w') as token:
                 token.write(creds.to_json())
+        return creds
+
+    def _get_service_creds(self):
+        return service_account.Credentials.from_service_account_file(self.credentials_dir.__str__(), scopes=SCOPES)
+
+    def _get_service(self, service_name='sheets', service_version='v4'):
+        creds = None
+        # The file token.json stores the user's access and refresh tokens, and is
+        # created automatically when the authorization flow completes for the first
+        # time.
+        if self.token_dir is None:
+            creds = self._get_service_creds()
+        else:
+            creds = self._get_user_creds()
 
         try:
             service = build(service_name, service_version, credentials=creds)
@@ -97,7 +109,12 @@ class DriveConnection:
         service.close()
         if not values:
             raise Exception('Empty data')
-        return pd.DataFrame(values[1:], columns=values[0])
+        df = pd.DataFrame(values[1:])
+        columns = values[0]
+        if len(df.columns) > len(columns):
+            columns += [f'Unknown {i}' for i in range(len(df.columns) - len(columns))]
+        df.columns = columns
+        return df
 
     def upload(self,
                df: pd.DataFrame,

@@ -7,7 +7,7 @@ long_description = (BASE_DIR / "readme.md").read_text()
 
 setup(
     name='gsheet-pandas',
-    version='0.1.8',
+    version='0.1.9',
     description='Download and upload pandas dataframes to the Google sheets',
     url='https://github.com/iakov-kaiumov/gsheet-pandas',
     author='Iakov Kaiumov',
@@ -21,6 +21,6 @@ setup(
         'google-api-python-client',
         'google-api-core',
         'google-auth-oauthlib',
-        'pandas',
+        'pandas'
     ]
 )

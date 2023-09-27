@@ -50,6 +50,16 @@ class TestConnectionMethods(unittest.TestCase):
         for value in values:
             self.assertEqual(value, new_column_value)
 
+    def test_service_account(self):
+        table_name = os.environ['table_name']
+        sheet_name = os.environ['sheet_name']
+
+        data_dir = Path(__file__).resolve().parent.parent / 'data'
+        drive = connection.DriveConnection(credentials_dir=data_dir / 'service_creds.json')
+
+        df = drive.download(drive_table=table_name, sheet_name=sheet_name)
+        print(df)
+
 
 if __name__ == '__main__':
     unittest.main()
