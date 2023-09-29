@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'google-api-python-client',
         'google-api-core',
+        'google-auth',
         'google-auth-oauthlib',
         'pandas'
     ]
