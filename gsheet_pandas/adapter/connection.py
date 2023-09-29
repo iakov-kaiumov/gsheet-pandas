@@ -2,10 +2,12 @@ from __future__ import print_function
 
 import os.path
 import socket
-import time
 from pathlib import Path
 
 import pandas as pd
+from pandas import Timestamp
+from pandas._libs.lib import Decimal
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google.oauth2 import service_account
@@ -38,6 +40,12 @@ def setup(credentials_dir: Path, token_dir: Path = None):
     pandas.from_gsheet = drive_connection.download
 
 
+def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.applymap(lambda x: str(x) if isinstance(x, Timestamp) else x)
+    df = df.applymap(lambda x: float(x) if isinstance(x, Decimal) else x)
+    return df
+
+
 class DriveConnection:
     def __init__(self, credentials_dir: Path, token_dir: Path = None):
         self.credentials_dir = credentials_dir
@@ -63,10 +71,6 @@ class DriveConnection:
         return service_account.Credentials.from_service_account_file(self.credentials_dir.__str__(), scopes=SCOPES)
 
     def _get_service(self, service_name='sheets', service_version='v4'):
-        creds = None
-        # The file token.json stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
         if self.token_dir is None:
             creds = self._get_service_creds()
         else:
@@ -75,7 +79,6 @@ class DriveConnection:
         try:
             service = build(service_name, service_version, credentials=creds)
             return service
-
         except HttpError as err:
             print(err)
             return None
@@ -97,8 +100,9 @@ class DriveConnection:
                 if page_token is None:
                     break
 
-        except HttpError as error:
-            print(f'get_all_files_in_folder: An error occurred - {error}')
+        except HttpError as e:
+            print(f'get_all_files_in_folder: An error occurred - {e}')
+            raise e
         return files
 
     def download(self, drive_table: str, sheet_name: str, range_name: str = DEFAULT_RANGE_NAME) -> pd.DataFrame:
@@ -123,11 +127,12 @@ class DriveConnection:
                range_name: str = DEFAULT_RANGE_NAME,
                drop_columns: bool = False):
         try:
+            df = _fix_dtypes(df)
             values = df.T.reset_index().T.values.tolist()
             if drop_columns:
                 values = df.values.tolist()
             service = self._get_service()
-            response = service.spreadsheets().values().update(
+            service.spreadsheets().values().update(
                 spreadsheetId=drive_table,
                 valueInputOption='RAW',
                 range=sheet_name + range_name,
@@ -136,7 +141,7 @@ class DriveConnection:
             service.close()
         except socket.timeout as e:
             print(f'pandas_to_sheet: Error: {e}')
-            time.sleep(1)
-            self.upload(df, drive_table, sheet_name, range_name)
+            raise e
         except Exception as e:
             print(f'pandas_to_sheet: Error: {e}')
+            raise e
