@@ -41,8 +41,8 @@ def setup(credentials_dir: Path, token_dir: Path = None):
 
 
 def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.applymap(lambda x: str(x) if isinstance(x, Timestamp) else x)
-    df = df.applymap(lambda x: float(x) if isinstance(x, Decimal) else x)
+    df = df.map(lambda x: str(x) if isinstance(x, Timestamp) else x)
+    df = df.map(lambda x: float(x) if isinstance(x, Decimal) else x)
     return df
 
 

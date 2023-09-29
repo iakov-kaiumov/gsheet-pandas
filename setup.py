@@ -19,9 +19,9 @@ setup(
     package_dir={'gsheet-pandas': 'gsheet_pandas'},
     install_requires=[
         'google-api-python-client',
-        'google-api-core',
-        'google-auth',
+        'google-auth-httplib2',
         'google-auth-oauthlib',
-        'pandas'
+        'pandas',
+        'python-dotenv',
     ]
 )
