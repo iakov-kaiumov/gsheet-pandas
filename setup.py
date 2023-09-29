@@ -20,5 +20,11 @@ setup(
     license='MIT License',
     packages=find_packages(),
     package_dir={'gsheet-pandas': 'gsheet_pandas'},
-    install_requires=required
+    install_requires=[
+        'google-api-python-client',
+        'google-auth-httplib2',
+        'google-auth-oauthlib',
+        'pandas',
+        'python-dotenv',
+    ]
 )
