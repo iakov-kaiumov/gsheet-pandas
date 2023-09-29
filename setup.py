@@ -4,6 +4,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 long_description = (BASE_DIR / "readme.md").read_text()
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 
 setup(
     name='gsheet-pandas',
@@ -17,11 +20,5 @@ setup(
     license='MIT License',
     packages=find_packages(),
     package_dir={'gsheet-pandas': 'gsheet_pandas'},
-    install_requires=[
-        'google-api-python-client',
-        'google-auth-httplib2',
-        'google-auth-oauthlib',
-        'pandas',
-        'python-dotenv',
-    ]
+    install_requires=required
 )
