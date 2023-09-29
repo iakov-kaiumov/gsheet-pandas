@@ -20,10 +20,10 @@ jobs:
           echo "${{ secrets.ENV_TEST }}" > .env
           pip install setuptools wheel twine
           python setup.py install
-          pip freeze
       - name: Test with unittest
         run: |
           cd gsheet_pandas
+          python -m pip freeze
           python -m unittest tests.py
           cd ..
   deploy:
