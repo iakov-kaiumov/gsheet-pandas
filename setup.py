@@ -4,8 +4,6 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 long_description = (BASE_DIR / "readme.md").read_text()
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
 
 
 setup(

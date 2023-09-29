@@ -17,6 +17,8 @@ jobs:
           python-version: '3.10'
       - name: Setup environment, python and requirements
         run: |
+          mkdir data
+          echo '${{ secrets.CREDS_TEST }}' > data/credentials.json
           echo "${{ secrets.ENV_TEST }}" > .env
           pip install setuptools wheel twine
           pip install -r requirements.txt
