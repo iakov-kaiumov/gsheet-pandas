@@ -43,5 +43,5 @@ jobs:
           python setup.py install
       - name: Build and upload
         run: |
-          python setup.py sdist bdist_wheel
-          python -m twine upload dist/* -u ${{ secrets.TWINE_LOGIN }} -p ${{ secrets.TWINE_PASSWORD }}
+          python setup.py sdist bdist_wheel --dist-dir ddist/
+          python -m twine upload ddist/* -u ${{ secrets.TWINE_LOGIN }} -p ${{ secrets.TWINE_PASSWORD }}
