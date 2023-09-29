@@ -19,6 +19,7 @@ jobs:
         run: |
           mkdir data
           echo '${{ secrets.CREDS_TEST }}' > data/credentials.json
+          echo '${{ secrets.TOKEN_TEST }}' > data/token.json
           echo "${{ secrets.ENV_TEST }}" > .env
           pip install setuptools wheel twine
           pip install -r requirements.txt
