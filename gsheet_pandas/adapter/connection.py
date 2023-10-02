@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import datetime
 import os.path
 import socket
 from pathlib import Path
@@ -41,7 +42,8 @@ def setup(credentials_dir: Path, token_dir: Path = None):
 
 
 def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.map(lambda x: str(x) if isinstance(x, Timestamp) else x)
+    df = df.fillna('')
+    df = df.map(lambda x: str(x) if isinstance(x, (Timestamp, datetime.datetime, datetime.date)) else x)
     df = df.map(lambda x: float(x) if isinstance(x, Decimal) else x)
     return df
 
