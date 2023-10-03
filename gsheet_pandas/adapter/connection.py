@@ -107,7 +107,8 @@ class DriveConnection:
             raise e
         return files
 
-    def download(self, drive_table: str, sheet_name: str, range_name: str = DEFAULT_RANGE_NAME) -> pd.DataFrame:
+    def download(self, drive_table: str, sheet_name: str, range_name: str = DEFAULT_RANGE_NAME,
+                 header: int | None = 0) -> pd.DataFrame:
         service = self._get_service()
         sheet = self._get_service().spreadsheets()
         result = sheet.values().get(spreadsheetId=drive_table, range=sheet_name + range_name).execute()
@@ -115,8 +116,17 @@ class DriveConnection:
         service.close()
         if not values:
             raise Exception('Empty data')
-        df = pd.DataFrame(values[1:])
-        columns = values[0]
+
+        if header is None:
+            return pd.DataFrame(values)
+
+        columns = values[header]
+        data = values[header + 1:]
+        if len(data) == 0:
+            # Return empty df
+            return pd.DataFrame(columns=columns)
+
+        df = pd.DataFrame(data)
         if len(df.columns) > len(columns):
             columns += [f'Unknown {i}' for i in range(len(df.columns) - len(columns))]
         df.columns = columns

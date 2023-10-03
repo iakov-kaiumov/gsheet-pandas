@@ -74,13 +74,14 @@ To download dataframe:
 ```python
 df = drive.download(drive_table=table_name, 
                     sheet_name=sheet_name,
-                    range_name='!A1:C100') # Range in Sheets; Optional
+                    range_name='!A1:C100', # Range in Sheets; Optional
+                    header=0) # Column row
 ```
 Default `range_name` is `'!A1:ZZ900000'`.
 
 To upload dataframe:
 ```python
-df = drive.download(df,
+df = drive.upload(df,
                     drive_table=table_name, 
                     sheet_name=sheet_name,
                     range_name='!B1:ZZ900000', # Range in Sheets; Optional
