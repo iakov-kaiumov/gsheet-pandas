@@ -1,10 +1,10 @@
-from __future__ import print_function
-
 import datetime
+import logging
 import os.path
 import socket
 from pathlib import Path
 
+import googleapiclient
 import pandas as pd
 from pandas import Timestamp
 from pandas._libs.lib import Decimal
@@ -16,7 +16,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-
+logger = logging.getLogger('gsheet-pandas')
 timeout_in_sec = 60 * 1
 socket.setdefaulttimeout(timeout_in_sec)
 
@@ -82,7 +82,7 @@ class DriveConnection:
             service = build(service_name, service_version, credentials=creds)
             return service
         except HttpError as err:
-            print(err)
+            logger.error(err)
             return None
 
     def get_all_files_in_folder(self, folder_id):
@@ -103,15 +103,25 @@ class DriveConnection:
                     break
 
         except HttpError as e:
-            print(f'get_all_files_in_folder: An error occurred - {e}')
             raise e
         return files
 
-    def download(self, drive_table: str, sheet_name: str, range_name: str = DEFAULT_RANGE_NAME,
+    def download(self,
+                 spreadsheet_id: str,
+                 sheet_name: str,
+                 range_name: str = DEFAULT_RANGE_NAME,
                  header: int | None = 0) -> pd.DataFrame:
+        """
+        Downloads Google Spreadsheet as Pandas DataFrame
+        :param spreadsheet_id: spreadsheet id
+        :param sheet_name: sheet name
+        :param range_name: range name (default is !A1:ZZ900000)
+        :param header: index of header row
+        :return dataframe
+        """
         service = self._get_service()
         sheet = self._get_service().spreadsheets()
-        result = sheet.values().get(spreadsheetId=drive_table, range=sheet_name + range_name).execute()
+        result = sheet.values().get(spreadsheetId=spreadsheet_id, range=sheet_name + range_name).execute()
         values = result.get('values', [])
         service.close()
         if not values:
@@ -134,10 +144,18 @@ class DriveConnection:
 
     def upload(self,
                df: pd.DataFrame,
-               drive_table: str,
+               spreadsheet_id: str,
                sheet_name: str,
                range_name: str = DEFAULT_RANGE_NAME,
-               drop_columns: bool = False):
+               drop_columns: bool = False) -> None:
+        """
+        Uploads Pandas DataFrame to the Google Spreadsheet
+        :param df: Pandas DataFrame
+        :param spreadsheet_id: spreadsheet id
+        :param sheet_name: sheet name
+        :param range_name: range name (default is !A1:ZZ900000)
+        :param drop_columns: whether to drop DataFrame columns or not
+        """
         try:
             df = _fix_dtypes(df)
             values = df.T.reset_index().T.values.tolist()
@@ -145,15 +163,55 @@ class DriveConnection:
                 values = df.values.tolist()
             service = self._get_service()
             service.spreadsheets().values().update(
-                spreadsheetId=drive_table,
+                spreadsheetId=spreadsheet_id,
                 valueInputOption='RAW',
                 range=sheet_name + range_name,
                 body=dict(majorDimension='ROWS', values=values),
             ).execute()
             service.close()
         except socket.timeout as e:
-            print(f'pandas_to_sheet: Error: {e}')
             raise e
         except Exception as e:
-            print(f'pandas_to_sheet: Error: {e}')
             raise e
+
+    def get_sheets_names(self, spreadsheet_id: str) -> list[str]:
+        """
+        Get sheets names for spreadsheet
+        :param spreadsheet_id: spreadsheet id
+        :return: list of names
+        """
+        service = self._get_service()
+        sheet_metadata = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+        sheets = sheet_metadata.get('sheets', '')
+        return [sheet.get("properties", {}).get("title") for sheet in sheets]
+
+    def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> int | None:
+        """
+        Creates new sheet in existing spreadsheet
+        :param spreadsheet_id: spreadsheet id
+        :param sheet_name: new sheet's name
+        :return: new sheet id if success, None if sheet exists
+        """
+        service = self._get_service()
+        batch_update_spreadsheet_request_body = {
+            "requests": [
+                {
+                    "addSheet": {
+                        "properties": {
+                            "title": sheet_name,
+                        }
+                    }
+                }
+            ]
+        }
+
+        request = service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
+                                                     body=batch_update_spreadsheet_request_body)
+        try:
+            response = request.execute()
+        except googleapiclient.errors.HttpError as e:
+            if e.status_code == 400:
+                return None
+            raise e
+        service.close()
+        return response['replies'][0]['addSheet']['properties']['sheetId']

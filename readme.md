@@ -47,7 +47,7 @@ To download dataframe:
 ```python
 import pandas as pd
 
-df = pd.from_gsheet(drive_table=table_name, 
+df = pd.from_gsheet(spreadsheet_id, 
                     sheet_name=sheet_name,
                     range_name='!A1:C100') # Range in Sheets; Optional
 ```
@@ -55,7 +55,7 @@ Default `range_name` is `'!A1:ZZ900000'`.
 
 To upload dataframe:
 ```python
-df.to_gsheet(drive_table=table_name, 
+df.to_gsheet(spreadsheet_id, 
              sheet_name=sheet_name,
              range_name='!B1:ZZ900000', # Range in Sheets; Optional
              drop_columns=False) # Upload column names or not; Optional
@@ -72,7 +72,7 @@ drive = DriveConnection(credentials_dir=secret_path / 'credentials.json',
 
 To download dataframe:
 ```python
-df = drive.download(drive_table=table_name, 
+df = drive.download(spreadsheet_id, 
                     sheet_name=sheet_name,
                     range_name='!A1:C100', # Range in Sheets; Optional
                     header=0) # Column row
@@ -82,8 +82,8 @@ Default `range_name` is `'!A1:ZZ900000'`.
 To upload dataframe:
 ```python
 df = drive.upload(df,
-                    drive_table=table_name, 
-                    sheet_name=sheet_name,
-                    range_name='!B1:ZZ900000', # Range in Sheets; Optional
-                    drop_columns=False) # Upload column names or not; Optional
+                  spreadsheet_id, 
+                  sheet_name=sheet_name,
+                  range_name='!B1:ZZ900000', # Range in Sheets; Optional
+                  drop_columns=False) # Upload column names or not; Optional
 ```
