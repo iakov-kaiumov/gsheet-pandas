@@ -42,6 +42,12 @@ jobs:
       #----------------------------------------------
       # install dependencies if cache does not exist
       #----------------------------------------------
+      - name: Setup environment
+        run: |
+          mkdir data
+          echo '${{ secrets.CREDS_TEST }}' > data/credentials.json
+          echo '${{ secrets.TOKEN_TEST }}' > data/token.json
+          echo "${{ secrets.ENV_TEST }}" > .env
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
