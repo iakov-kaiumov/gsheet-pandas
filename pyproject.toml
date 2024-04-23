@@ -6,9 +6,9 @@ build-backend = "poetry.core.masonry.api"
 name = "gsheet-pandas"
 version = "0.2.7"
 description = "Download and upload pandas dataframes to the Google sheets"
-authors = [{name = "Iakov Kaiumov", email = "yashahelfi2012@gmail.com"}]
+authors = ["Iakov Kaiumov <yashahelfi2012@gmail.com>"]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.9"
