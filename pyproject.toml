@@ -9,6 +9,7 @@ description = "Download and upload pandas dataframes to the Google sheets"
 authors = ["Iakov Kaiumov <yashahelfi2012@gmail.com>"]
 readme = "README.md"
 license = "MIT"
+packages = [{include = "gsheet_pandas"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
