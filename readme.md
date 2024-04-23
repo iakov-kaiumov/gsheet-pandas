@@ -1,5 +1,6 @@
 # Google sheet & Pandas intergation
 
+[![test](https://github.com/iakov-kaiumov/gsheet-pandas/actions/workflows/test.yml/badge.svg)](https://github.com/iakov-kaiumov/gsheet-pandas/actions/workflows/test.yml)
 [![PyPI Latest Release](https://img.shields.io/pypi/v/gsheet-pandas.svg)](https://pypi.org/project/gsheet-pandas/)
 [![License](https://img.shields.io/pypi/l/gsheet-pandas.svg)](https://github.com/iakov-kaiumov/gsheet-pandas/blob/main/LICENSE)
 

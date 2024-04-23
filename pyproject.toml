@@ -7,7 +7,7 @@ name = "gsheet-pandas"
 version = "0.2.7"
 description = "Download and upload pandas dataframes to the Google sheets"
 authors = ["Iakov Kaiumov <yashahelfi2012@gmail.com>"]
-readme = "README.md"
+readme = "readme.md"
 license = "MIT"
 packages = [{include = "gsheet_pandas"}]
 
