@@ -2,6 +2,7 @@
 
 [![test](https://github.com/iakov-kaiumov/gsheet-pandas/actions/workflows/test.yml/badge.svg)](https://github.com/iakov-kaiumov/gsheet-pandas/actions/workflows/test.yml)
 [![PyPI Latest Release](https://img.shields.io/pypi/v/gsheet-pandas.svg)](https://pypi.org/project/gsheet-pandas/)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/gsheet-pandas)
 [![License](https://img.shields.io/pypi/l/gsheet-pandas.svg)](https://github.com/iakov-kaiumov/gsheet-pandas/blob/main/LICENSE)
 
 Package `gheet-pandas` allows you to easily get Pandas dataframe from Google Sheets or upload dataframe to the Sheets.
