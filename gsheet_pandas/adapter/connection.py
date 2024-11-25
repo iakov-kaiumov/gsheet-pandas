@@ -3,6 +3,7 @@ import logging
 import os.path
 import socket
 from pathlib import Path
+from typing import Literal
 
 import googleapiclient
 import pandas as pd
@@ -147,7 +148,8 @@ class DriveConnection:
                spreadsheet_id: str,
                sheet_name: str,
                range_name: str = DEFAULT_RANGE_NAME,
-               drop_columns: bool = False) -> None:
+               drop_columns: bool = False,
+               value_input_option: Literal['INPUT_VALUE_OPTION_UNSPECIFIED', 'RAW', 'USER_ENTERED'] = 'RAW') -> None:
         """
         Uploads Pandas DataFrame to the Google Spreadsheet
         :param df: Pandas DataFrame
@@ -155,6 +157,7 @@ class DriveConnection:
         :param sheet_name: sheet name
         :param range_name: range name (default is !A1:ZZ900000)
         :param drop_columns: whether to drop DataFrame columns or not
+        :param value_input_option: The input value option. See here https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
         """
         try:
             df = _fix_dtypes(df)
@@ -164,7 +167,7 @@ class DriveConnection:
             service = self._get_service()
             service.spreadsheets().values().update(
                 spreadsheetId=spreadsheet_id,
-                valueInputOption='RAW',
+                valueInputOption=value_input_option,
                 range=sheet_name + range_name,
                 body=dict(majorDimension='ROWS', values=values),
             ).execute()
