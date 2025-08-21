@@ -23,5 +23,8 @@ def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _escape_sheet_name(sheet_name: str) -> str:
+    if sheet_name.startswith("'") and sheet_name.endswith("'"):
+        return sheet_name
+
     sheet_name = sheet_name.replace("'", "''")
     return f"'{sheet_name}'"
