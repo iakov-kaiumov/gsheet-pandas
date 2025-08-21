@@ -3,7 +3,7 @@ import logging
 import os.path
 import socket
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 import googleapiclient
 import pandas as pd
@@ -111,7 +111,7 @@ class DriveConnection:
                  spreadsheet_id: str,
                  sheet_name: str,
                  range_name: str = DEFAULT_RANGE_NAME,
-                 header: int | None = 0) -> pd.DataFrame:
+                 header: Optional[int] = 0) -> pd.DataFrame:
         """
         Downloads Google Spreadsheet as Pandas DataFrame
         :param spreadsheet_id: spreadsheet id
@@ -188,7 +188,7 @@ class DriveConnection:
         sheets = sheet_metadata.get('sheets', '')
         return [sheet.get("properties", {}).get("title") for sheet in sheets]
 
-    def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> int | None:
+    def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> Optional[int]:
         """
         Creates new sheet in existing spreadsheet
         :param spreadsheet_id: spreadsheet id

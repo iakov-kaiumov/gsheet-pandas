@@ -3,7 +3,7 @@ import datetime
 import logging
 import os.path
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 import pandas as pd
 from pandas import Timestamp
@@ -183,7 +183,7 @@ class AsyncDriveConnection:
                       spreadsheet_id: str,
                       sheet_name: str,
                       range_name: str = DEFAULT_RANGE_NAME,
-                      header: int | None = 0) -> pd.DataFrame:
+                      header: Optional[int] = 0) -> pd.DataFrame:
         """
         Asynchronously download Google Spreadsheet as Pandas DataFrame.
         
@@ -323,7 +323,7 @@ class AsyncDriveConnection:
             logger.error(f"Error getting sheet names: {e}")
             raise e
     
-    async def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> int | None:
+    async def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> Optional[int]:
         """
         Asynchronously create new sheet in existing spreadsheet.
         
