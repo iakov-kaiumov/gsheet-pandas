@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os.path
 import socket
@@ -7,8 +6,6 @@ from typing import Literal, Optional
 
 import googleapiclient
 import pandas as pd
-from pandas import Timestamp
-from pandas._libs.lib import Decimal
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -16,6 +13,8 @@ from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+from gsheet_pandas.utils import _fix_dtypes
 
 logger = logging.getLogger("gsheet-pandas")
 timeout_in_sec = 60 * 1
@@ -45,17 +44,6 @@ def setup(credentials_dir: Path, token_dir: Path = None):
 
     pandas.DataFrame.to_gsheet = inner_generator()
     pandas.from_gsheet = drive_connection.download
-
-
-def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.fillna("")
-    df = df.map(
-        lambda x: str(x)
-        if isinstance(x, (Timestamp, datetime.datetime, datetime.date))
-        else x
-    )
-    df = df.map(lambda x: float(x) if isinstance(x, Decimal) else x)
-    return df
 
 
 class DriveConnection:
