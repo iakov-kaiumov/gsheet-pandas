@@ -19,10 +19,13 @@ import aiohttp
 from aiogoogle import Aiogoogle
 from aiogoogle.auth.creds import ServiceAccountCreds, UserCreds
 
-logger = logging.getLogger('gsheet-pandas')
+logger = logging.getLogger("gsheet-pandas")
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-DEFAULT_RANGE_NAME = '!A1:ZZ900000'
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+DEFAULT_RANGE_NAME = "!A1:ZZ900000"
 
 async_drive_connection = None
 
@@ -30,19 +33,21 @@ async_drive_connection = None
 async def setup(credentials_dir: Path, token_dir: Path = None):
     """
     Initialize async connection to Google Drive and register pandas extensions.
-    
+
     :param credentials_dir: Path to credentials.json file
     :param token_dir: Path to token.json file (optional)
     """
     global async_drive_connection
     async_drive_connection = AsyncDriveConnection(credentials_dir, token_dir)
-    
+
     def inner_generator():
         async def inner(df, *args, **kwargs):
             await async_drive_connection.upload(df, *args, **kwargs)
+
         return inner
-    
+
     import pandas
+
     pandas.DataFrame.to_gsheet_async = inner_generator()
     pandas.from_gsheet_async = async_drive_connection.download
 
@@ -50,12 +55,16 @@ async def setup(credentials_dir: Path, token_dir: Path = None):
 def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
     """
     Fix data types in DataFrame for proper upload to Google Sheets.
-    
+
     :param df: DataFrame to process
     :return: Processed DataFrame
     """
-    df = df.fillna('')
-    df = df.map(lambda x: str(x) if isinstance(x, (Timestamp, datetime.datetime, datetime.date)) else x)
+    df = df.fillna("")
+    df = df.map(
+        lambda x: str(x)
+        if isinstance(x, (Timestamp, datetime.datetime, datetime.date))
+        else x
+    )
     df = df.map(lambda x: float(x) if isinstance(x, Decimal) else x)
     return df
 
@@ -64,11 +73,11 @@ class AsyncDriveConnection:
     """
     Async class for working with Google Drive and Google Sheets.
     """
-    
+
     def __init__(self, credentials_dir: Path, token_dir: Path = None):
         """
         Initialize async connection.
-        
+
         :param credentials_dir: Path to credentials.json or service account file
         :param token_dir: Path to token.json file (optional, only for OAuth2)
         """
@@ -76,26 +85,30 @@ class AsyncDriveConnection:
         self.token_dir = token_dir
         self._aiogoogle = None
         self._creds = None
-    
+
     def _get_user_creds_sync(self):
         """
         Synchronously get user OAuth2 credentials (for initial setup).
         """
         creds = None
         if os.path.exists(self.token_dir):
-            creds = Credentials.from_authorized_user_file(self.token_dir.__str__(), SCOPES)
+            creds = Credentials.from_authorized_user_file(
+                self.token_dir.__str__(), SCOPES
+            )
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(self.credentials_dir.__str__(), SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    self.credentials_dir.__str__(), SCOPES
+                )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open(self.token_dir, 'w') as token:
+            with open(self.token_dir, "w") as token:
                 token.write(creds.to_json())
         return creds
-    
+
     async def _get_aiogoogle(self):
         """
         Get or create Aiogoogle instance with authorization.
@@ -103,21 +116,22 @@ class AsyncDriveConnection:
         if self._aiogoogle is None:
             if self.token_dir is None:
                 # Service account
-                service_account_creds = service_account.Credentials.from_service_account_file(
-                    self.credentials_dir.__str__(), 
-                    scopes=SCOPES
+                service_account_creds = (
+                    service_account.Credentials.from_service_account_file(
+                        self.credentials_dir.__str__(), scopes=SCOPES
+                    )
                 )
                 creds_dict = {
-                    'type': 'service_account',
-                    'client_email': service_account_creds.service_account_email,
-                    'private_key': service_account_creds._private_key_pkcs8_pem.decode() if isinstance(
-                        service_account_creds._private_key_pkcs8_pem, bytes
-                    ) else service_account_creds._private_key_pkcs8_pem,
-                    'private_key_id': service_account_creds._private_key_id,
-                    'client_id': service_account_creds._client_id,
-                    'token_uri': service_account_creds._token_uri,
-                    'project_id': service_account_creds._project_id,
-                    'scopes': SCOPES
+                    "type": "service_account",
+                    "client_email": service_account_creds.service_account_email,
+                    "private_key": service_account_creds._private_key_pkcs8_pem.decode()
+                    if isinstance(service_account_creds._private_key_pkcs8_pem, bytes)
+                    else service_account_creds._private_key_pkcs8_pem,
+                    "private_key_id": service_account_creds._private_key_id,
+                    "client_id": service_account_creds._client_id,
+                    "token_uri": service_account_creds._token_uri,
+                    "project_id": service_account_creds._project_id,
+                    "scopes": SCOPES,
                 }
                 self._creds = ServiceAccountCreds(**creds_dict)
                 self._aiogoogle = Aiogoogle(service_account_creds=self._creds)
@@ -125,29 +139,31 @@ class AsyncDriveConnection:
                 # User OAuth2
                 user_creds = self._get_user_creds_sync()
                 creds_dict = {
-                    'access_token': user_creds.token,
-                    'refresh_token': user_creds.refresh_token,
-                    'expires_at': user_creds.expiry.isoformat() if user_creds.expiry else None,
-                    'scopes': SCOPES
+                    "access_token": user_creds.token,
+                    "refresh_token": user_creds.refresh_token,
+                    "expires_at": user_creds.expiry.isoformat()
+                    if user_creds.expiry
+                    else None,
+                    "scopes": SCOPES,
                 }
                 self._creds = UserCreds(**creds_dict)
                 self._aiogoogle = Aiogoogle(user_creds=self._creds)
-        
+
         return self._aiogoogle
-    
+
     async def get_all_files_in_folder(self, folder_id):
         """
         Asynchronously get all files in specified Google Drive folder.
-        
+
         :param folder_id: Google Drive folder ID
         :return: List of files
         """
         files = []
         try:
             async with await self._get_aiogoogle() as aiogoogle:
-                drive_v3 = await aiogoogle.discover('drive', 'v3')
+                drive_v3 = await aiogoogle.discover("drive", "v3")
                 page_token = None
-                
+
                 while True:
                     if self.token_dir is None:
                         # Service account
@@ -156,7 +172,7 @@ class AsyncDriveConnection:
                                 q=f"'{folder_id}' in parents",
                                 pageSize=100,
                                 fields="nextPageToken, files(id, name)",
-                                pageToken=page_token
+                                pageToken=page_token,
                             )
                         )
                     else:
@@ -166,27 +182,29 @@ class AsyncDriveConnection:
                                 q=f"'{folder_id}' in parents",
                                 pageSize=100,
                                 fields="nextPageToken, files(id, name)",
-                                pageToken=page_token
+                                pageToken=page_token,
                             )
                         )
-                    
-                    files.extend(response.get('files', []))
-                    page_token = response.get('nextPageToken', None)
+
+                    files.extend(response.get("files", []))
+                    page_token = response.get("nextPageToken", None)
                     if page_token is None:
                         break
-                        
+
         except Exception as e:
             raise e
         return files
-    
-    async def download(self,
-                      spreadsheet_id: str,
-                      sheet_name: str,
-                      range_name: str = DEFAULT_RANGE_NAME,
-                      header: Optional[int] = 0) -> pd.DataFrame:
+
+    async def download(
+        self,
+        spreadsheet_id: str,
+        sheet_name: str,
+        range_name: str = DEFAULT_RANGE_NAME,
+        header: Optional[int] = 0,
+    ) -> pd.DataFrame:
         """
         Asynchronously download Google Spreadsheet as Pandas DataFrame.
-        
+
         :param spreadsheet_id: Spreadsheet ID
         :param sheet_name: Sheet name
         :param range_name: Cell range (default !A1:ZZ900000)
@@ -195,59 +213,63 @@ class AsyncDriveConnection:
         """
         try:
             async with await self._get_aiogoogle() as aiogoogle:
-                sheets_v4 = await aiogoogle.discover('sheets', 'v4')
-                
+                sheets_v4 = await aiogoogle.discover("sheets", "v4")
+
                 if self.token_dir is None:
                     # Service account
                     result = await aiogoogle.as_service_account(
                         sheets_v4.spreadsheets.values.get(
-                            spreadsheetId=spreadsheet_id,
-                            range=sheet_name + range_name
+                            spreadsheetId=spreadsheet_id, range=sheet_name + range_name
                         )
                     )
                 else:
                     # User OAuth2
                     result = await aiogoogle.as_user(
                         sheets_v4.spreadsheets.values.get(
-                            spreadsheetId=spreadsheet_id,
-                            range=sheet_name + range_name
+                            spreadsheetId=spreadsheet_id, range=sheet_name + range_name
                         )
                     )
-                
-                values = result.get('values', [])
-                
+
+                values = result.get("values", [])
+
                 if not values:
-                    raise Exception('Empty data')
-                
+                    raise Exception("Empty data")
+
                 if header is None:
                     return pd.DataFrame(values)
-                
+
                 columns = values[header]
-                data = values[header + 1:]
+                data = values[header + 1 :]
                 if len(data) == 0:
                     # Return empty df
                     return pd.DataFrame(columns=columns)
-                
+
                 df = pd.DataFrame(data)
                 if len(df.columns) > len(columns):
-                    columns += [f'Unknown {i}' for i in range(len(df.columns) - len(columns))]
+                    columns += [
+                        f"Unknown {i}" for i in range(len(df.columns) - len(columns))
+                    ]
                 df.columns = columns
                 return df
-                
+
         except Exception as e:
             logger.error(f"Error downloading spreadsheet: {e}")
             raise e
-    
-    async def upload(self,
-                    df: pd.DataFrame,
-                    spreadsheet_id: str,
-                    sheet_name: str,
-                    range_name: str = DEFAULT_RANGE_NAME,
-                    drop_columns: bool = False,
-                    value_input_option: Literal['INPUT_VALUE_OPTION_UNSPECIFIED', 'RAW', 'USER_ENTERED'] = 'RAW') -> None:
+
+    async def upload(
+        self,
+        df: pd.DataFrame,
+        spreadsheet_id: str,
+        sheet_name: str,
+        range_name: str = DEFAULT_RANGE_NAME,
+        drop_columns: bool = False,
+        value_input_option: Literal[
+            "INPUT_VALUE_OPTION_UNSPECIFIED", "RAW", "USER_ENTERED"
+        ] = "RAW",
+    ) -> None:
         """
         Asynchronously upload Pandas DataFrame to Google Spreadsheet.
-        
+
         :param df: Pandas DataFrame
         :param spreadsheet_id: Spreadsheet ID
         :param sheet_name: Sheet name
@@ -260,15 +282,12 @@ class AsyncDriveConnection:
             values = df.T.reset_index().T.values.tolist()
             if drop_columns:
                 values = df.values.tolist()
-            
+
             async with await self._get_aiogoogle() as aiogoogle:
-                sheets_v4 = await aiogoogle.discover('sheets', 'v4')
-                
-                body = {
-                    'majorDimension': 'ROWS',
-                    'values': values
-                }
-                
+                sheets_v4 = await aiogoogle.discover("sheets", "v4")
+
+                body = {"majorDimension": "ROWS", "values": values}
+
                 if self.token_dir is None:
                     # Service account
                     await aiogoogle.as_service_account(
@@ -276,7 +295,7 @@ class AsyncDriveConnection:
                             spreadsheetId=spreadsheet_id,
                             range=sheet_name + range_name,
                             valueInputOption=value_input_option,
-                            body=body
+                            body=body,
                         )
                     )
                 else:
@@ -286,25 +305,25 @@ class AsyncDriveConnection:
                             spreadsheetId=spreadsheet_id,
                             range=sheet_name + range_name,
                             valueInputOption=value_input_option,
-                            body=body
+                            body=body,
                         )
                     )
-                    
+
         except Exception as e:
             logger.error(f"Error uploading to spreadsheet: {e}")
             raise e
-    
+
     async def get_sheets_names(self, spreadsheet_id: str) -> list[str]:
         """
         Asynchronously get sheet names in spreadsheet.
-        
+
         :param spreadsheet_id: Spreadsheet ID
         :return: List of sheet names
         """
         try:
             async with await self._get_aiogoogle() as aiogoogle:
-                sheets_v4 = await aiogoogle.discover('sheets', 'v4')
-                
+                sheets_v4 = await aiogoogle.discover("sheets", "v4")
+
                 if self.token_dir is None:
                     # Service account
                     sheet_metadata = await aiogoogle.as_service_account(
@@ -315,26 +334,26 @@ class AsyncDriveConnection:
                     sheet_metadata = await aiogoogle.as_user(
                         sheets_v4.spreadsheets.get(spreadsheetId=spreadsheet_id)
                     )
-                
-                sheets = sheet_metadata.get('sheets', '')
+
+                sheets = sheet_metadata.get("sheets", "")
                 return [sheet.get("properties", {}).get("title") for sheet in sheets]
-                
+
         except Exception as e:
             logger.error(f"Error getting sheet names: {e}")
             raise e
-    
+
     async def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> Optional[int]:
         """
         Asynchronously create new sheet in existing spreadsheet.
-        
+
         :param spreadsheet_id: Spreadsheet ID
         :param sheet_name: New sheet name
         :return: New sheet ID if successful, None if sheet already exists
         """
         try:
             async with await self._get_aiogoogle() as aiogoogle:
-                sheets_v4 = await aiogoogle.discover('sheets', 'v4')
-                
+                sheets_v4 = await aiogoogle.discover("sheets", "v4")
+
                 batch_update_spreadsheet_request_body = {
                     "requests": [
                         {
@@ -346,14 +365,14 @@ class AsyncDriveConnection:
                         }
                     ]
                 }
-                
+
                 try:
                     if self.token_dir is None:
                         # Service account
                         response = await aiogoogle.as_service_account(
                             sheets_v4.spreadsheets.batchUpdate(
                                 spreadsheetId=spreadsheet_id,
-                                body=batch_update_spreadsheet_request_body
+                                body=batch_update_spreadsheet_request_body,
                             )
                         )
                     else:
@@ -361,17 +380,21 @@ class AsyncDriveConnection:
                         response = await aiogoogle.as_user(
                             sheets_v4.spreadsheets.batchUpdate(
                                 spreadsheetId=spreadsheet_id,
-                                body=batch_update_spreadsheet_request_body
+                                body=batch_update_spreadsheet_request_body,
                             )
                         )
-                    
-                    return response['replies'][0]['addSheet']['properties']['sheetId']
-                    
+
+                    return response["replies"][0]["addSheet"]["properties"]["sheetId"]
+
                 except Exception as e:
-                    if hasattr(e, 'res') and hasattr(e.res, 'status_code') and e.res.status_code == 400:
+                    if (
+                        hasattr(e, "res")
+                        and hasattr(e.res, "status_code")
+                        and e.res.status_code == 400
+                    ):
                         return None
                     raise e
-                    
+
         except Exception as e:
             logger.error(f"Error creating sheet: {e}")
             raise e
