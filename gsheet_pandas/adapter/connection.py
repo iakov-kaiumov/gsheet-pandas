@@ -14,7 +14,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from gsheet_pandas.utils import _fix_dtypes
+from gsheet_pandas.utils import _fix_dtypes, _escape_sheet_name
 
 logger = logging.getLogger("gsheet-pandas")
 timeout_in_sec = 60 * 1
@@ -130,6 +130,8 @@ class DriveConnection:
         :param header: index of header row
         :return dataframe
         """
+        sheet_name = _escape_sheet_name(sheet_name)
+
         service = self._get_service()
         sheet = self._get_service().spreadsheets()
         result = (
@@ -177,6 +179,8 @@ class DriveConnection:
         :param drop_columns: whether to drop DataFrame columns or not
         :param value_input_option: The input value option. See here https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
         """
+        sheet_name = _escape_sheet_name(sheet_name)
+
         try:
             df = _fix_dtypes(df)
             values = df.T.reset_index().T.values.tolist()

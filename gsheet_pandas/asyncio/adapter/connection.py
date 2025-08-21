@@ -12,7 +12,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from aiogoogle import Aiogoogle
 from aiogoogle.auth.creds import ServiceAccountCreds, UserCreds
 
-from gsheet_pandas.utils import _fix_dtypes
+from gsheet_pandas.utils import _fix_dtypes, _escape_sheet_name
 
 logger = logging.getLogger("gsheet-pandas")
 
@@ -174,6 +174,7 @@ class AsyncDriveConnection:
         :param header: Header row index
         :return: DataFrame
         """
+        sheet_name = _escape_sheet_name(sheet_name)
         try:
             async with await self._get_aiogoogle() as aiogoogle:
                 sheets_v4 = await aiogoogle.discover("sheets", "v4")
@@ -240,6 +241,7 @@ class AsyncDriveConnection:
         :param drop_columns: Whether to drop column headers
         :param value_input_option: Value input option (see Google Sheets API documentation)
         """
+        sheet_name = _escape_sheet_name(sheet_name)
         try:
             df = _fix_dtypes(df)
             values = df.T.reset_index().T.values.tolist()
