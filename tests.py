@@ -24,7 +24,7 @@ class TestConnectionMethods(unittest.TestCase):
     def _get_drive() -> connection.DriveConnection:
         return connection.DriveConnection(
             credentials_dir=data_dir / "credentials.json",
-            # token_dir=data_dir / 'token.json'
+            token_dir=data_dir / 'token.json'
         )
 
     def test_list_sheets(self):
@@ -55,7 +55,7 @@ class TestConnectionMethods(unittest.TestCase):
     def test_pandas_extension(self):
         connection.setup(
             credentials_dir=data_dir / "credentials.json",
-            # token_dir=data_dir / "token.json",
+            token_dir=data_dir / "token.json",
         )
 
         df = pd.from_gsheet(spreadsheet_id=spreadsheet_id, sheet_name=sheet_name)
