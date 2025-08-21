@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 import dotenv
 
-from asyncio.adapter import connection
+from gsheet_pandas.asyncio.adapter import connection
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 dotenv.load_dotenv(BASE_DIR / '.env')

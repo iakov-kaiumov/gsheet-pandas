@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from adapter import connection
+from gsheet_pandas.adapter import connection
 import dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
