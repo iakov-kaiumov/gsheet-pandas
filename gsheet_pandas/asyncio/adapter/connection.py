@@ -1,5 +1,5 @@
-import asyncio
 import datetime
+import json
 import logging
 import os.path
 from pathlib import Path
@@ -11,11 +11,7 @@ from pandas._libs.lib import Decimal
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-import aiohttp
 from aiogoogle import Aiogoogle
 from aiogoogle.auth.creds import ServiceAccountCreds, UserCreds
 
@@ -116,24 +112,9 @@ class AsyncDriveConnection:
         if self._aiogoogle is None:
             if self.token_dir is None:
                 # Service account
-                service_account_creds = (
-                    service_account.Credentials.from_service_account_file(
-                        self.credentials_dir.__str__(), scopes=SCOPES
-                    )
-                )
-                creds_dict = {
-                    "type": "service_account",
-                    "client_email": service_account_creds.service_account_email,
-                    "private_key": service_account_creds._private_key_pkcs8_pem.decode()
-                    if isinstance(service_account_creds._private_key_pkcs8_pem, bytes)
-                    else service_account_creds._private_key_pkcs8_pem,
-                    "private_key_id": service_account_creds._private_key_id,
-                    "client_id": service_account_creds._client_id,
-                    "token_uri": service_account_creds._token_uri,
-                    "project_id": service_account_creds._project_id,
-                    "scopes": SCOPES,
-                }
-                self._creds = ServiceAccountCreds(**creds_dict)
+                with open(self.credentials_dir.__str__()) as f:
+                    creds_dict = json.load(f)
+                self._creds = ServiceAccountCreds(scopes=SCOPES, **creds_dict)
                 self._aiogoogle = Aiogoogle(service_account_creds=self._creds)
             else:
                 # User OAuth2
@@ -288,26 +269,31 @@ class AsyncDriveConnection:
 
                 body = {"majorDimension": "ROWS", "values": values}
 
+                request = sheets_v4.spreadsheets.values.clear(
+                    spreadsheetId=spreadsheet_id,
+                    range=sheet_name + range_name,
+                )
+
                 if self.token_dir is None:
                     # Service account
-                    await aiogoogle.as_service_account(
-                        sheets_v4.spreadsheets.values.update(
-                            spreadsheetId=spreadsheet_id,
-                            range=sheet_name + range_name,
-                            valueInputOption=value_input_option,
-                            body=body,
-                        )
-                    )
+                    await aiogoogle.as_service_account(request)
                 else:
                     # User OAuth2
-                    await aiogoogle.as_user(
-                        sheets_v4.spreadsheets.values.update(
-                            spreadsheetId=spreadsheet_id,
-                            range=sheet_name + range_name,
-                            valueInputOption=value_input_option,
-                            body=body,
-                        )
-                    )
+                    await aiogoogle.as_user(request)
+
+                request = sheets_v4.spreadsheets.values.update(
+                    spreadsheetId=spreadsheet_id,
+                    range=sheet_name + range_name,
+                    valueInputOption=value_input_option,
+                    json=body,
+                )
+
+                if self.token_dir is None:
+                    # Service account
+                    await aiogoogle.as_service_account(request)
+                else:
+                    # User OAuth2
+                    await aiogoogle.as_user(request)
 
         except Exception as e:
             logger.error(f"Error uploading to spreadsheet: {e}")
@@ -372,7 +358,7 @@ class AsyncDriveConnection:
                         response = await aiogoogle.as_service_account(
                             sheets_v4.spreadsheets.batchUpdate(
                                 spreadsheetId=spreadsheet_id,
-                                body=batch_update_spreadsheet_request_body,
+                                json=batch_update_spreadsheet_request_body,
                             )
                         )
                     else:
@@ -380,7 +366,7 @@ class AsyncDriveConnection:
                         response = await aiogoogle.as_user(
                             sheets_v4.spreadsheets.batchUpdate(
                                 spreadsheetId=spreadsheet_id,
-                                body=batch_update_spreadsheet_request_body,
+                                json=batch_update_spreadsheet_request_body,
                             )
                         )
 

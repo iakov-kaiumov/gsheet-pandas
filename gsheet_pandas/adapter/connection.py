@@ -195,6 +195,10 @@ class DriveConnection:
             if drop_columns:
                 values = df.values.tolist()
             service = self._get_service()
+            service.spreadsheets().values().clear(
+                spreadsheetId=spreadsheet_id,
+                range=sheet_name + range_name,
+            ).execute()
             service.spreadsheets().values().update(
                 spreadsheetId=spreadsheet_id,
                 valueInputOption=value_input_option,
