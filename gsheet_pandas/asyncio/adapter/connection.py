@@ -29,10 +29,10 @@ async_drive_connection = None
 
 async def setup(credentials_dir: Path, token_dir: Path = None):
     """
-    Инициализирует асинхронное подключение к Google Drive и регистрирует pandas расширения.
+    Initialize async connection to Google Drive and register pandas extensions.
     
-    :param credentials_dir: Путь к файлу credentials.json
-    :param token_dir: Путь к файлу token.json (опционально)
+    :param credentials_dir: Path to credentials.json file
+    :param token_dir: Path to token.json file (optional)
     """
     global async_drive_connection
     async_drive_connection = AsyncDriveConnection(credentials_dir, token_dir)
@@ -49,10 +49,10 @@ async def setup(credentials_dir: Path, token_dir: Path = None):
 
 def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Исправляет типы данных в DataFrame для корректной загрузки в Google Sheets.
+    Fix data types in DataFrame for proper upload to Google Sheets.
     
-    :param df: DataFrame для обработки
-    :return: Обработанный DataFrame
+    :param df: DataFrame to process
+    :return: Processed DataFrame
     """
     df = df.fillna('')
     df = df.map(lambda x: str(x) if isinstance(x, (Timestamp, datetime.datetime, datetime.date)) else x)
@@ -62,15 +62,15 @@ def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
 
 class AsyncDriveConnection:
     """
-    Асинхронный класс для работы с Google Drive и Google Sheets.
+    Async class for working with Google Drive and Google Sheets.
     """
     
     def __init__(self, credentials_dir: Path, token_dir: Path = None):
         """
-        Инициализирует асинхронное подключение.
+        Initialize async connection.
         
-        :param credentials_dir: Путь к файлу credentials.json или service account файлу
-        :param token_dir: Путь к файлу token.json (опционально, только для OAuth2)
+        :param credentials_dir: Path to credentials.json or service account file
+        :param token_dir: Path to token.json file (optional, only for OAuth2)
         """
         self.credentials_dir = credentials_dir
         self.token_dir = token_dir
@@ -79,7 +79,7 @@ class AsyncDriveConnection:
     
     def _get_user_creds_sync(self):
         """
-        Синхронно получает пользовательские OAuth2 креды (для начальной настройки).
+        Synchronously get user OAuth2 credentials (for initial setup).
         """
         creds = None
         if os.path.exists(self.token_dir):
@@ -98,7 +98,7 @@ class AsyncDriveConnection:
     
     async def _get_aiogoogle(self):
         """
-        Получает или создает экземпляр Aiogoogle с авторизацией.
+        Get or create Aiogoogle instance with authorization.
         """
         if self._aiogoogle is None:
             if self.token_dir is None:
@@ -137,10 +137,10 @@ class AsyncDriveConnection:
     
     async def get_all_files_in_folder(self, folder_id):
         """
-        Асинхронно получает все файлы в указанной папке Google Drive.
+        Asynchronously get all files in specified Google Drive folder.
         
-        :param folder_id: ID папки в Google Drive
-        :return: Список файлов
+        :param folder_id: Google Drive folder ID
+        :return: List of files
         """
         files = []
         try:
@@ -185,12 +185,12 @@ class AsyncDriveConnection:
                       range_name: str = DEFAULT_RANGE_NAME,
                       header: int | None = 0) -> pd.DataFrame:
         """
-        Асинхронно загружает Google Spreadsheet как Pandas DataFrame.
+        Asynchronously download Google Spreadsheet as Pandas DataFrame.
         
-        :param spreadsheet_id: ID таблицы
-        :param sheet_name: Имя листа
-        :param range_name: Диапазон ячеек (по умолчанию !A1:ZZ900000)
-        :param header: Индекс строки заголовка
+        :param spreadsheet_id: Spreadsheet ID
+        :param sheet_name: Sheet name
+        :param range_name: Cell range (default !A1:ZZ900000)
+        :param header: Header row index
         :return: DataFrame
         """
         try:
@@ -246,14 +246,14 @@ class AsyncDriveConnection:
                     drop_columns: bool = False,
                     value_input_option: Literal['INPUT_VALUE_OPTION_UNSPECIFIED', 'RAW', 'USER_ENTERED'] = 'RAW') -> None:
         """
-        Асинхронно загружает Pandas DataFrame в Google Spreadsheet.
+        Asynchronously upload Pandas DataFrame to Google Spreadsheet.
         
         :param df: Pandas DataFrame
-        :param spreadsheet_id: ID таблицы
-        :param sheet_name: Имя листа
-        :param range_name: Диапазон ячеек (по умолчанию !A1:ZZ900000)
-        :param drop_columns: Удалять ли заголовки столбцов
-        :param value_input_option: Опция ввода значений (см. документацию Google Sheets API)
+        :param spreadsheet_id: Spreadsheet ID
+        :param sheet_name: Sheet name
+        :param range_name: Cell range (default !A1:ZZ900000)
+        :param drop_columns: Whether to drop column headers
+        :param value_input_option: Value input option (see Google Sheets API documentation)
         """
         try:
             df = _fix_dtypes(df)
@@ -296,10 +296,10 @@ class AsyncDriveConnection:
     
     async def get_sheets_names(self, spreadsheet_id: str) -> list[str]:
         """
-        Асинхронно получает имена листов в таблице.
+        Asynchronously get sheet names in spreadsheet.
         
-        :param spreadsheet_id: ID таблицы
-        :return: Список имен листов
+        :param spreadsheet_id: Spreadsheet ID
+        :return: List of sheet names
         """
         try:
             async with await self._get_aiogoogle() as aiogoogle:
@@ -325,11 +325,11 @@ class AsyncDriveConnection:
     
     async def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> int | None:
         """
-        Асинхронно создает новый лист в существующей таблице.
+        Asynchronously create new sheet in existing spreadsheet.
         
-        :param spreadsheet_id: ID таблицы
-        :param sheet_name: Имя нового листа
-        :return: ID нового листа в случае успеха, None если лист уже существует
+        :param spreadsheet_id: Spreadsheet ID
+        :param sheet_name: New sheet name
+        :return: New sheet ID if successful, None if sheet already exists
         """
         try:
             async with await self._get_aiogoogle() as aiogoogle:
