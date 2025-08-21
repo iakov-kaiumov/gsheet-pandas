@@ -20,3 +20,8 @@ def _fix_dtypes(df: pd.DataFrame) -> pd.DataFrame:
     )
     df = df.map(lambda x: float(x) if isinstance(x, Decimal) else x)
     return df
+
+
+def _escape_sheet_name(sheet_name: str) -> str:
+    sheet_name = sheet_name.replace("'", "''")
+    return f"'{sheet_name}'"
