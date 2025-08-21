@@ -12,13 +12,13 @@ import dotenv
 
 from gsheet_pandas.asyncio.adapter import connection
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 dotenv.load_dotenv(BASE_DIR / '.env')
 
 spreadsheet_id = os.getenv('table_name')
 sheet_name = os.getenv('sheet_name')
 
-data_dir = Path(__file__).resolve().parent.parent / 'data'
+data_dir = Path(__file__).resolve().parent / 'data'
 
 
 class TestAsyncConnectionMethods(unittest.IsolatedAsyncioTestCase):
