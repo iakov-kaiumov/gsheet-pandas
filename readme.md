@@ -176,32 +176,37 @@ asyncio.run(main())
 ```
 
 #### Parallel Processing Example
+
 ```python
 import asyncio
 import gsheet_pandas.asyncio as gsheet_async
 
+
 async def process_multiple_sheets():
     drive = gsheet_async.AsyncDriveConnection(
-        credentials_dir='credentials.json',
+        credentials_dir='data/credentials.json',
         token_dir='token.json'
     )
-    
+
     # Process multiple spreadsheets in parallel
     spreadsheet_ids = ['sheet_id_1', 'sheet_id_2', 'sheet_id_3']
-    
+
     async def process_sheet(sheet_id):
         df = await drive.download(sheet_id, 'Sheet1')
         # Process data
         df['processed'] = True
         await drive.upload(df, sheet_id, 'ProcessedSheet')
         return df
-    
+
     # Run all tasks concurrently
-    results = await asyncio.gather(*[
-        process_sheet(sid) for sid in spreadsheet_ids
-    ])
-    
+    results = await asyncio.gather(
+        *[
+            process_sheet(sid) for sid in spreadsheet_ids
+        ]
+        )
+
     print(f"Processed {len(results)} spreadsheets")
+
 
 asyncio.run(process_multiple_sheets())
 ```
