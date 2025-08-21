@@ -17,14 +17,18 @@ spreadsheet_id = os.getenv("table_name")
 sheet_name = os.getenv("sheet_name")
 
 data_dir = Path(__file__).resolve().parent / "data"
+credentials_dir = data_dir / "credentials.json"
+token_dir = data_dir / "token.json"
+if not token_dir.exists():
+    # To allow testing with service account
+    token_dir = None
 
 
 class TestConnectionMethods(unittest.TestCase):
     @staticmethod
     def _get_drive() -> connection.DriveConnection:
         return connection.DriveConnection(
-            credentials_dir=data_dir / "credentials.json",
-            token_dir=data_dir / 'token.json'
+            credentials_dir=credentials_dir, token_dir=token_dir
         )
 
     def test_list_sheets(self):
@@ -53,10 +57,7 @@ class TestConnectionMethods(unittest.TestCase):
             self.assertEqual(value, new_column_value)
 
     def test_pandas_extension(self):
-        connection.setup(
-            credentials_dir=data_dir / "credentials.json",
-            token_dir=data_dir / "token.json",
-        )
+        connection.setup(credentials_dir=credentials_dir, token_dir=token_dir)
 
         df = pd.from_gsheet(spreadsheet_id=spreadsheet_id, sheet_name=sheet_name)
         new_column_value = str(random.random())

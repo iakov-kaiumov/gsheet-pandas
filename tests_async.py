@@ -20,6 +20,11 @@ spreadsheet_id = os.getenv("table_name")
 sheet_name = os.getenv("sheet_name")
 
 data_dir = Path(__file__).resolve().parent / "data"
+credentials_dir = data_dir / "credentials.json"
+token_dir = data_dir / "token.json"
+if not token_dir.exists():
+    # To allow testing with service account
+    token_dir = None
 
 
 class TestAsyncConnectionMethods(unittest.IsolatedAsyncioTestCase):
@@ -33,8 +38,7 @@ class TestAsyncConnectionMethods(unittest.IsolatedAsyncioTestCase):
         Create AsyncDriveConnection instance for tests.
         """
         return connection.AsyncDriveConnection(
-            credentials_dir=data_dir / "credentials.json",
-            token_dir=data_dir / "token.json",
+            credentials_dir=credentials_dir, token_dir=token_dir
         )
 
     async def test_list_sheets(self):
@@ -77,10 +81,7 @@ class TestAsyncConnectionMethods(unittest.IsolatedAsyncioTestCase):
         """
         Test pandas extensions for async operations.
         """
-        await connection.setup(
-            credentials_dir=data_dir / "credentials.json",
-            token_dir=data_dir / "token.json",
-        )
+        await connection.setup(credentials_dir=credentials_dir, token_dir=token_dir)
 
         df = await pd.from_gsheet_async(
             spreadsheet_id=spreadsheet_id, sheet_name=sheet_name
@@ -125,7 +126,7 @@ class TestAsyncConnectionMethods(unittest.IsolatedAsyncioTestCase):
 
         # Create DataFrame with formula
         df = pd.DataFrame(
-            {"A": [1, 2, 3], "B": [4, 5, 6], "Formula": ["=A1+B1", "=A2+B2", "=A3+B3"]}
+            {"A": [1, 2, 3], "B": [4, 5, 6], "Formula": ["=A2+B2", "=A3+B3", "=A4+B4"]}
         )
 
         # Upload with USER_ENTERED option
