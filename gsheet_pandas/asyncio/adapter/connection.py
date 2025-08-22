@@ -164,6 +164,7 @@ class AsyncDriveConnection:
         sheet_name: str,
         range_name: str = DEFAULT_RANGE_NAME,
         header: Optional[int] = 0,
+        value_render_option: Literal["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"] = "FORMATTED_VALUE",
     ) -> pd.DataFrame:
         """
         Asynchronously download Google Spreadsheet as Pandas DataFrame.
@@ -172,6 +173,7 @@ class AsyncDriveConnection:
         :param sheet_name: Sheet name
         :param range_name: Cell range (default !A1:ZZ900000)
         :param header: Header row index
+        :param value_render_option: Determines how values should be rendered in the output
         :return: DataFrame
         """
         sheet_name = _escape_sheet_name(sheet_name)
@@ -183,14 +185,18 @@ class AsyncDriveConnection:
                     # Service account
                     result = await aiogoogle.as_service_account(
                         sheets_v4.spreadsheets.values.get(
-                            spreadsheetId=spreadsheet_id, range=sheet_name + range_name
+                            spreadsheetId=spreadsheet_id,
+                            range=sheet_name + range_name,
+                            value_render_option=value_render_option,
                         )
                     )
                 else:
                     # User OAuth2
                     result = await aiogoogle.as_user(
                         sheets_v4.spreadsheets.values.get(
-                            spreadsheetId=spreadsheet_id, range=sheet_name + range_name
+                            spreadsheetId=spreadsheet_id,
+                            range=sheet_name + range_name,
+                            value_render_option=value_render_option,
                         )
                     )
 
