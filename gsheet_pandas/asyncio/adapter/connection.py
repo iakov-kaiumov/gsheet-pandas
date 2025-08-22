@@ -187,7 +187,7 @@ class AsyncDriveConnection:
                         sheets_v4.spreadsheets.values.get(
                             spreadsheetId=spreadsheet_id,
                             range=sheet_name + range_name,
-                            value_render_option=value_render_option,
+                            valueRenderOption=value_render_option,
                         )
                     )
                 else:
@@ -196,7 +196,7 @@ class AsyncDriveConnection:
                         sheets_v4.spreadsheets.values.get(
                             spreadsheetId=spreadsheet_id,
                             range=sheet_name + range_name,
-                            value_render_option=value_render_option,
+                            valueRenderOption=value_render_option,
                         )
                     )
 
