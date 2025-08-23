@@ -2,7 +2,7 @@ import json
 import logging
 import os.path
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import pandas as pd
 
@@ -163,7 +163,7 @@ class AsyncDriveConnection:
         spreadsheet_id: str,
         sheet_name: str,
         range_name: str = DEFAULT_RANGE_NAME,
-        header: Optional[int] = 0,
+        header: Union[int, list[str], None] = 0,
         value_render_option: Literal["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"] = "FORMATTED_VALUE",
     ) -> pd.DataFrame:
         """
@@ -201,15 +201,18 @@ class AsyncDriveConnection:
                     )
 
                 values = result.get("values", [])
+                if isinstance(header, int):
+                    columns = values[header]
+                    data = values[header + 1 :]
+                else:
+                    if header is None:
+                        if not values:
+                            raise Exception("Empty data")
+                        return pd.DataFrame(values)
 
-                if not values:
-                    raise Exception("Empty data")
+                    columns = header
+                    data = values
 
-                if header is None:
-                    return pd.DataFrame(values)
-
-                columns = values[header]
-                data = values[header + 1 :]
                 if len(data) == 0:
                     # Return empty df
                     return pd.DataFrame(columns=columns)
