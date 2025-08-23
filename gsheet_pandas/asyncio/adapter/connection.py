@@ -1,6 +1,7 @@
 import json
 import logging
 import os.path
+from itertools import zip_longest, islice
 from pathlib import Path
 from typing import Literal, Optional, Union
 
@@ -217,7 +218,13 @@ class AsyncDriveConnection:
                     # Return empty df
                     return pd.DataFrame(columns=columns)
 
-                df = pd.DataFrame(data)
+                n_cols = len(columns)
+                padded = [
+                    list(islice(row + [None] * n_cols, n_cols))
+                    for row in data
+                ]
+
+                df = pd.DataFrame(padded)
                 if len(df.columns) > len(columns):
                     columns += [
                         f"Unknown {i}" for i in range(len(df.columns) - len(columns))
