@@ -18,5 +18,5 @@ google-auth-httplib2 = "^0.1.1"
 google-auth-oauthlib = "^1.1.0"
 pandas = "^2.1.1"
 python-dotenv = "^1.0.0"
-
-[tool.poetry.dev-dependencies]
+aiogoogle = "^5.2.0"
+aiohttp = "^3.9.0"

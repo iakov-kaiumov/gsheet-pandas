@@ -59,8 +59,11 @@ jobs:
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
-      - name: Run tests
+      - name: Run sync tests
         run: |
           source .venv/bin/activate
-          cd gsheet_pandas
           python -m unittest tests.py
+      - name: Run async tests
+        run: |
+          source .venv/bin/activate
+          python -m unittest tests_async.py
