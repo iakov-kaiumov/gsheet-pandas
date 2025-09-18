@@ -11,6 +11,10 @@ readme = "readme.md"
 license = "MIT"
 packages = [{include = "gsheet_pandas"}]
 
+[project.urls]
+homepage = "https://github.com/iakov-kaiumov/gsheet-pandas"
+repository = "https://github.com/iakov-kaiumov/gsheet-pandas"
+
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
 google-api-python-client = "^2.101.0"
