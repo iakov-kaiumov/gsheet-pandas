@@ -11,7 +11,7 @@ readme = "readme.md"
 license = "MIT"
 packages = [{include = "gsheet_pandas"}]
 
-[project.urls]
+[tool.poetry.urls]
 homepage = "https://github.com/iakov-kaiumov/gsheet-pandas"
 repository = "https://github.com/iakov-kaiumov/gsheet-pandas"
 
